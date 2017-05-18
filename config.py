@@ -21,6 +21,7 @@ NUM_RLAYERS = 2     # Number of layers
 # Training parameter, self-explanatory
 BATCH_SIZE = 128
 SAMPLES_PER_EPOCH = 8192
+STEPS_PER_EPOCH = SAMPLES_PER_EPOCH // BATCH_SIZE
 NUM_EPOCHS = 200
 VALID_SIZE = 512
 

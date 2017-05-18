@@ -17,7 +17,7 @@ from feats import get_egs
 
 from config import EMBEDDINGS_DIMENSION, MIN_MIX, MAX_MIX
 from config import NUM_RLAYERS, SIZE_RLAYERS
-from config import BATCH_SIZE, SAMPLES_PER_EPOCH, NUM_EPOCHS, VALID_SIZE
+from config import BATCH_SIZE, STEPS_PER_EPOCH, NUM_EPOCHS, VALID_SIZE
 from config import DROPOUT, RDROPOUT, L2R, CLIPNORM
 
 
@@ -29,6 +29,7 @@ def get_dims(generator, embedding_size):
     out_shape[-1] *= float(embedding_size)/k
     out_shape[-1] = int(out_shape[-1])
     out_shape = tuple(out_shape)
+
     return inp_shape, out_shape
 
 
@@ -92,19 +93,19 @@ def train_nnet(train_list, valid_list, weights_path=None):
     x = inp
     for i in range(NUM_RLAYERS):
         x = Bidirectional(LSTM(SIZE_RLAYERS, return_sequences=True,
-                               W_regularizer=l2(L2R),
-                               U_regularizer=l2(L2R),
-                               b_regularizer=l2(L2R),
-                               dropout_W=DROPOUT,
-                               dropout_U=RDROPOUT),
+                               kernel_regularizer=l2(L2R),
+                               recurrent_regularizer=l2(L2R),
+                               bias_regularizer=l2(L2R),
+                               dropout=DROPOUT,
+                               recurrent_dropout=RDROPOUT),
                           input_shape=inp_shape)(x)
     kmeans_o = TimeDistributed(Dense(out_shape[-1],
                                      activation='tanh',
-                                     W_regularizer=l2(L2R),
-                                     b_regularizer=l2(L2R)),
+                                     kernel_regularizer=l2(L2R),
+                                     bias_regularizer=l2(L2R)),
                                name='kmeans_o')(x)
 
-    model = Model(input=[inp], output=[kmeans_o])
+    model = Model(inputs=[inp], outputs=[kmeans_o])
     if weights_path:
         model.load_weights(weights_path)
     model.compile(loss={'kmeans_o': affinitykmeans},
@@ -123,9 +124,9 @@ def train_nnet(train_list, valid_list, weights_path=None):
 
     model.fit_generator(train_gen,
                         validation_data=valid_gen,
-                        nb_val_samples=VALID_SIZE,
-                        samples_per_epoch=SAMPLES_PER_EPOCH,
-                        nb_epoch=NUM_EPOCHS,
+                        validation_steps=VALID_SIZE,
+                        steps_per_epoch=STEPS_PER_EPOCH,
+                        epochs=NUM_EPOCHS,
                         max_q_size=512,
                         callbacks=callbacks_list)
     save_model(model, "model")

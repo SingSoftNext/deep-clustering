@@ -17,7 +17,7 @@ from feats import get_egs
 
 from config import EMBEDDINGS_DIMENSION, MIN_MIX, MAX_MIX
 from config import NUM_RLAYERS, SIZE_RLAYERS
-from config import BATCH_SIZE, STEPS_PER_EPOCH, NUM_EPOCHS, VALID_SIZE
+from config import BATCH_SIZE, STEPS_PER_EPOCH, NUM_EPOCHS, VALIDATION_STEPS
 from config import DROPOUT, RDROPOUT, L2R, CLIPNORM
 
 
@@ -124,7 +124,7 @@ def train_nnet(train_list, valid_list, weights_path=None):
 
     model.fit_generator(train_gen,
                         validation_data=valid_gen,
-                        validation_steps=VALID_SIZE,
+                        validation_steps=VALIDATION_STEPS,
                         steps_per_epoch=STEPS_PER_EPOCH,
                         epochs=NUM_EPOCHS,
                         max_q_size=512,

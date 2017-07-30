@@ -136,3 +136,4 @@ def print_examples(wavpaths, nnet, db_threshold=None,
     ax1.imshow(img.swapaxes(0, 1), origin='lower')
     ax2.imshow(img2.swapaxes(0, 1), origin='lower')
     ax3.imshow(img3.swapaxes(0, 1), origin='lower', cmap='afmhot')
+    plt.show()

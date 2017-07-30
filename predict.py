@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=C0103,R0912,R0913,R0914,R0915
 """
 Created on Mon Oct 17 10:20:31 2016
 
@@ -11,8 +12,9 @@ from config import FRAME_RATE
 
 
 def prepare_features(wavpath, nnet, pred_index=0):
+    """Prepare features"""
     freq = int(nnet.input.get_shape()[2])
-    if(isinstance(nnet.output, list)):
+    if isinstance(nnet.output, list):
         K = int(nnet.output[pred_index].get_shape()[2]) // freq
     else:
         K = int(nnet.output.get_shape()[2]) // freq
@@ -26,7 +28,7 @@ def prepare_features(wavpath, nnet, pred_index=0):
     spec = stft(sig)
     mag = np.real(np.log10(spec))
     X = mag.reshape((1,) + mag.shape)
-    if(isinstance(nnet.output, list)):
+    if isinstance(nnet.output, list):
         V = nnet.predict(X)[pred_index]
     else:
         V = nnet.predict(X)
@@ -54,7 +56,7 @@ def separate_sources(wavpath, nnet, num_sources, out_prefix):
     """
     k = num_sources
     freq = int(nnet.input.get_shape()[2])
-    spec, rate, x, v = prepare_features(wavpath, nnet, 1)
+    spec, rate, _, v = prepare_features(wavpath, nnet, 1)
 
     from sklearn.cluster import KMeans
     km = KMeans(k)

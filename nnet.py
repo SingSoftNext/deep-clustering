@@ -12,7 +12,7 @@ from keras.layers import TimeDistributed, Bidirectional
 from keras.regularizers import l2
 from keras.optimizers import Nadam
 from keras.models import model_from_json
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 from feats import get_egs
 
 from config import EMBEDDINGS_DIMENSION, MIN_MIX, MAX_MIX
@@ -119,8 +119,8 @@ def train_nnet(train_list, valid_list, weights_path=None):
                                  save_best_only=True,
                                  mode='min',
                                  save_weights_only=True)
-
-    callbacks_list = [checkpoint]
+    tb = TensorBoard()
+    callbacks_list = [checkpoint, tb]
 
     model.fit_generator(train_gen,
                         validation_data=valid_gen,

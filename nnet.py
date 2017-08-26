@@ -5,6 +5,8 @@ Created on Mon Sep 26 15:23:31 2016
 @author: jcsilva
 """
 
+import os
+
 from keras import backend as K
 from keras.models import Model
 from keras.layers import Input, Dense, LSTM
@@ -18,7 +20,8 @@ from feats import get_egs
 from config import EMBEDDINGS_DIMENSION, MIN_MIX, MAX_MIX
 from config import NUM_RLAYERS, SIZE_RLAYERS
 from config import BATCH_SIZE, STEPS_PER_EPOCH, NUM_EPOCHS, VALIDATION_STEPS
-from config import DROPOUT, RDROPOUT, L2R, CLIPNORM
+from config import DEEPC_BASE, DROPOUT, RDROPOUT, L2R, CLIPNORM
+
 
 
 def get_dims(generator, embedding_size):
@@ -34,23 +37,31 @@ def get_dims(generator, embedding_size):
 
 
 def save_model(model, filename):
+
     # serialize model to JSON
+    path_json = os.path.join(DEEPC_BASE, filename + '.json')
     model_json = model.to_json()
-    with open(filename + ".json", "w") as json_file:
+    with open(path_json, "w") as json_file:
         json_file.write(model_json)
+
     # serialize weights to HDF5
-    model.save_weights(filename + ".h5")
+    path_weights = os.path.join(DEEPC_BASE, filename + '.h5')
+    model.save_weights(path_weights)
     print("Model saved to disk")
 
 
 def load_model(filename):
+
     # load json and create model
-    json_file = open(filename + '.json', 'r')
+    path_json = os.path.join(DEEPC_BASE, filename + '.json')
+    json_file = open(path_json, 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
+
     # load weights into new model
-    loaded_model.load_weights(filename + ".h5")
+    path_weights = os.path.join(DEEPC_BASE, filename + '.h5')
+    loaded_model.load_weights(path_weights)
     print("Model loaded from disk")
     return loaded_model
 
@@ -112,7 +123,7 @@ def train_nnet(train_list, valid_list, weights_path=None):
                   optimizer=Nadam(clipnorm=CLIPNORM))
 
     # checkpoint
-    filepath = "weights-improvement-{epoch:02d}-{val_loss:.2f}.h5"
+    filepath = os.path.join(DEEPC_BASE, "weights-improvement-{epoch:02d}-{val_loss:.2f}.h5")
     checkpoint = ModelCheckpoint(filepath,
                                  monitor='val_loss',
                                  verbose=0,
@@ -129,4 +140,4 @@ def train_nnet(train_list, valid_list, weights_path=None):
                         epochs=NUM_EPOCHS,
                         max_q_size=512,
                         callbacks=callbacks_list)
-    save_model(model, "model")
+    save_model(model, 'model')

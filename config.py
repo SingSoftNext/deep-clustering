@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import getpass
+
+# Base directory for data files
+user = getpass.getuser()
+DEEPC_BASE = '/media/bruce/MoreData/dc-' + user
+
+# Base name of model files
+MODEL_BASE = 'model'
+
 # FFT parameters, self-explanatory
 FRAME_RATE = 8000
 FRAME_LENGTH = .032
@@ -19,7 +28,7 @@ SIZE_RLAYERS = 300  # Since we use BLSTMs, the number of neurons is doubled
 NUM_RLAYERS = 2     # Number of layers
 
 # Training parameter, self-explanatory
-SMALL_TEST = False
+SMALL_TEST = True
 if SMALL_TEST:
     BATCH_SIZE = 16
     SAMPLES_PER_EPOCH = 256

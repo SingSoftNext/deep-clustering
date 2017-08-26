@@ -10,32 +10,40 @@ the original paper from Hershey et. al. (2015)[2]
 [1] http://stackoverflow.com/a/20409020
 [2] https://arxiv.org/abs/1508.04306
 """
-import numpy as np
+import os
 import random
+import numpy as np
 import soundfile as sf
-from config import FRAME_LENGTH, FRAME_SHIFT, FRAME_RATE
+from config import DEEPC_BASE, FRAME_LENGTH, FRAME_SHIFT, FRAME_RATE
 from config import TIMESTEPS, DB_THRESHOLD
 
 
 def sqrt_hann(M):
+    """Create the square root Hann window"""
     return np.sqrt(np.hanning(M))
 
 
 def stft(x, fftsize=int(FRAME_LENGTH*FRAME_RATE),
          overlap=FRAME_LENGTH//FRAME_SHIFT):
     """
-    Short-time fourier transform.
-        x:
+    Perform the short-time Fourier transform (STFT).
+
+    Parameters
+    ----------
+    x: array_like
         input waveform (1D array of samples)
 
-        fftsize:
+    fftsize:
         in samples, size of the fft window
 
-        overlap:
+    overlap:
         should be a divisor of fftsize, represents the rate of
         window superposition (window displacement=fftsize/overlap)
 
-        return: linear domain spectrum (2D complex array)
+    Returns
+    -------
+    y: ndarray
+        Linear domain spectrum (2D complex array)
     """
     hop = int(np.round(fftsize / overlap))
     w = sqrt_hann(fftsize)
@@ -46,15 +54,20 @@ def stft(x, fftsize=int(FRAME_LENGTH*FRAME_RATE),
 
 def istft(X, overlap=FRAME_LENGTH//FRAME_SHIFT):
     """
-    Inverse short-time fourier transform.
-        X:
+    Perform the inverse short-time Fourier transform (iSTFT).
+
+    Parameters
+    ----------
+    X : array_like
         input spectrum (2D complex array)
+    overlap: int, optional
+        The rate of window superposition. Should be a divisor of
+        ``(X.shape[1] - 1) * 2``, (window displacement=fftsize/overlap)
 
-        overlap:
-        should be a divisor of (X.shape[1] - 1) * 2, represents the rate of
-        window superposition (window displacement=fftsize/overlap)
-
-        return: floating-point waveform samples (1D array)
+    Returns
+    -------
+    y : ndarray of real
+        Floating-point waveform samples (1D array)
     """
     fftsize = (X.shape[1] - 1) * 2
     hop = int(np.round(fftsize / overlap))
@@ -71,16 +84,23 @@ def istft(X, overlap=FRAME_LENGTH//FRAME_SHIFT):
 
 def get_egs(wavlist, min_mix=2, max_mix=3, batch_size=1):
     """
-    Generate examples for the neural network from a list of wave files with
-    speaker ids. Each line is of type "path speaker", as follows:
+    Generate examples for the neural network.
 
-    path/to/1st.wav spk1
-    path/to/2nd.wav spk2
-    path/to/3rd.wav spk1
-
-    and so on.
-    min_mix and max_mix are the minimum and maximum number of examples to
-    be mixed for generating a training example
+    Parameters
+    ----------
+    wavlist : string
+        Path to a text file containing a list of wave files with
+        speaker ids. Each line is of type "path speaker", as follows::
+        path/to/1st.wav spk1
+        path/to/2nd.wav spk2
+        path/to/3rd.wav spk1
+        ...
+    min_mix : int
+        Minimum number of speakers to mix
+    max_max : int
+        Maximum number of speakers to mix
+    batch_size : int
+        Number of examples to generate
     """
     speaker_wavs = {}
     batch_x = []
@@ -88,9 +108,11 @@ def get_egs(wavlist, min_mix=2, max_mix=3, batch_size=1):
     batch_count = 0
 
     while True:  # Generate examples indefinitely
+
         # Select number of files to mix
-        k = np.random.randint(min_mix, max_mix+1)
+        k = np.random.randint(min_mix, max_mix + 1)
         if k > len(speaker_wavs):
+
             # Reading wav files list and separating per speaker
             speaker_wavs = {}
             f = open(wavlist)
@@ -180,6 +202,7 @@ def get_egs(wavlist, min_mix=2, max_mix=3, batch_size=1):
 
 
 if __name__ == "__main__":
-    x, y = next(get_egs('train', batch_size=50))
+    path_trn = os.path.join(DEEPC_BASE, 'train')
+    x, y = next(get_egs(path_trn, batch_size=50))
     print(x['input'].shape)
     print(y['kmeans_o'].shape)

@@ -15,12 +15,16 @@ and so on.
 
 Output files will be named "train", "valid" and "test",
 and will be generated in the current directory.
-""" 
+"""
+import os
 from sys import argv
 from random import random, seed
 
+from config import DEEPC_BASE
+
 
 def main():
+    """Perform processing when invoked from command line"""
     seed(1)
     spk = {}
     f = open(argv[1])
@@ -33,9 +37,13 @@ def main():
             spk[s] = set()
         spk[s].add(w)
     f.close()
-    train = open('train', 'w')
-    valid = open('valid', 'w')
-    test = open('test', 'w')
+
+    path_trn = os.path.join(DEEPC_BASE, 'train')
+    path_val = os.path.join(DEEPC_BASE, 'valid')
+    path_tst = os.path.join(DEEPC_BASE, 'test')
+    train = open(path_trn, 'w')
+    valid = open(path_val, 'w')
+    test = open(path_tst, 'w')
     for s in spk:
         r = random()
         if r > .5:
@@ -47,7 +55,7 @@ def main():
         else:
             for w in spk[s]:
                 test.write(w + " " + s + "\n")
-    for f in [train,valid,test]:
+    for f in [train, valid, test]:
         f.close()
 
 
